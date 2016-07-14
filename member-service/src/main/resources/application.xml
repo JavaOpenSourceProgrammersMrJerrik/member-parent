@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans  
+                        http://www.springframework.org/schema/beans/spring-beans.xsd
+                        http://code.alibabatech.com/schema/dubbo        
+                        http://code.alibabatech.com/schema/dubbo/dubbo.xsd
+                        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
+                        http://www.springframework.org/schema/jdbc 
+                        http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+                        http://www.springframework.org/schema/context  
+                        http://www.springframework.org/schema/context/spring-context.xsd
+                        http://www.springframework.org/schema/task
+                        http://www.springframework.org/schema/task/spring-task-3.2.xsd">
+	<!-- 自动扫描 -->
+	<context:component-scan base-package="com.mango.*" />
+	<!-- 支持异步方法执行 -->
+	<task:annotation-driven />
+
+	<bean id="propertyConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location">
+			<value>app.properties</value>
+		</property>
+	</bean>
+	<!-- 添加数据源参数 -->
+	<import resource="classpath:/dataSource.xml" />
+
+	<!-- spring和MyBatis整合 -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="configLocation" value="classpath:/mybatis/mybatis-config.xml" />
+		<property name="dataSource" ref="dataSource" />
+		<!-- 自动扫描domain目录, 省掉Configuration.xml里的手工配置 -->
+		<property name="typeAliasesPackage" value="com.mango.spi.member.dto.response" />
+		<!-- 自动扫描mapping.xml文件 -->
+		<property name="mapperLocations" value="classpath:/mybatis/*Mapper.xml"></property>
+	</bean>
+
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"></property>
+		<property name="basePackage" value="com.mango.member.mapper" />
+	</bean>
+
+	<!-- 和本地bean一样实现服务 -->
+	<bean id="demoService" class="com.mango.member.service.impl.ServiceImpl" />
+
+
+
+	<!-- 提供方应用信息，用于计算依赖关系 -->
+	<dubbo:application name="member-service" />
+
+	<!-- 用dubbo协议在20881端口暴露服务 -->
+	<dubbo:protocol name="dubbo" port="${dubbo.protocol.port}" />
+
+	<!-- 连接到哪个本地注册中心 -->
+	<dubbo:registry address="zookeeper://${dubbo.registry.address}" />
+
+	<!-- 声明需要暴露的服务接口 -->
+	<dubbo:service interface="com.mango.member.spi.IService"
+		ref="demoService" />
+
+</beans>

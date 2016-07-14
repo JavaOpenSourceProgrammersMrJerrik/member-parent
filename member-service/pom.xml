@@ -1,0 +1,269 @@
+﻿<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<artifactId>member-parent</artifactId>
+		<groupId>com.mango.member</groupId>
+		<version>0.0.1-SNAPSHOT</version>
+	</parent>
+
+	<groupId>com.mango.member</groupId>
+	<artifactId>mango-member-service</artifactId>
+	<packaging>jar</packaging>
+	<version>0.0.1${app.version.type}</version>
+
+	<properties>
+		<timestamp>${maven.build.timestamp}</timestamp>
+		<maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss</maven.build.timestamp.format>
+		<dev.version.type>-SNAPSHOT</dev.version.type>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.mango.member</groupId>
+			<artifactId>mango-member-spi</artifactId>
+			<version>0.0.1${app.version.type}</version>
+		</dependency>
+	</dependencies>
+
+
+	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+			<resource>
+				<directory>src/main/scripts</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+		<plugins>
+			<!-- 提取项目配置文件、避免被打入 jar 包中（打入 jar 包中不便于部署和运维时修改） -->
+			<plugin>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>**/*.properties</exclude>
+						<exclude>**/*.xml</exclude>
+					</excludes>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- 抽取第三方依赖 jar 包，到独立 lib 目录中 -->
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<descriptor>src/main/assembly/assembly.xml</descriptor>
+				</configuration>
+				<executions>
+					<execution>
+						<id>make-assembly</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+					<encoding>UTF-8</encoding>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>3.42</version>
+				<configuration>
+					<sourceDirectory>.</sourceDirectory>
+					<testSourceDirectory>test</testSourceDirectory>
+					<outputDirectory>target/classes</outputDirectory>
+					<testOutputDirectory>target/test-classes</testOutputDirectory>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>findbugs-maven-plugin</artifactId>
+				<version>2.5.1</version>
+				<configuration>
+					<threshold>High</threshold>
+					<effort>Default</effort>
+					<findbugsXmlOutput>true</findbugsXmlOutput>
+					<findbugsXmlWithMessages>true</findbugsXmlWithMessages>
+					<xmlOutput>true</xmlOutput>
+					<formats>
+						<format>html</format>
+					</formats>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.7</version>
+				<configuration>
+					<encoding>UTF-8</encoding>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-report-plugin</artifactId>
+				<version>2.14.1</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jxr-plugin</artifactId>
+				<version>2.1</version>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>cobertura-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</reporting>
+
+	<profiles>
+		<!-- 本地，默认激活 ，实现本地测试资源自动替换 -->
+		<profile>
+			<id>local</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+				<property>
+					<name>env</name>
+					<value>local</value>
+				</property>
+			</activation>
+			<build>
+				<filters>
+					<filter>src/main/assembly/local.properties</filter>
+				</filters>
+			</build>
+			<properties>
+				<app.version.type>${dev.version.type}</app.version.type>
+				<spi.version.type>${dev.version.type}</spi.version.type>
+			</properties>
+		</profile>
+		<!-- 开发环境打包：mvn -Denv=dev package -->
+		<profile>
+			<id>dev</id>
+			<activation>
+				<!-- <activeByDefault>true</activeByDefault> -->
+				<property>
+					<name>env</name>
+					<value>dev</value>
+				</property>
+			</activation>
+			<build>
+				<filters>
+					<filter>src/main/assembly/dev.properties</filter>
+				</filters>
+			</build>
+			<properties>
+				<app.version.type>${dev.version.type}</app.version.type>
+				<spi.version.type>${dev.version.type}</spi.version.type>
+			</properties>
+		</profile>
+
+		<!-- 测试环境打包：mvn -Denv=test package -->
+		<profile>
+			<id>test</id>
+			<activation>
+
+				<property>
+					<name>env</name>
+					<value>test</value>
+				</property>
+			</activation>
+			<build>
+				<filters>
+					<filter>src/main/assembly/test.properties</filter>
+				</filters>
+			</build>
+			<properties>
+				<app.version.type>-SNAPSHOT</app.version.type>
+				<spi.version.type>-SNAPSHOT</spi.version.type>
+			</properties>
+		</profile>
+
+		<!-- 回归环境打包：mvn -Denv=reg package -->
+		<profile>
+			<id>reg</id>
+			<activation>
+				<property>
+					<name>env</name>
+					<value>reg</value>
+				</property>
+			</activation>
+			<build>
+				<filters>
+					<filter>src/main/assembly/reg.properties</filter>
+				</filters>
+			</build>
+			<properties>
+				<app.version.type>-SNAPSHOT</app.version.type>
+				<spi.version.type>${dev.version.type}</spi.version.type>
+			</properties>
+		</profile>
+		<!-- 生产环境打包：mvn -Denv=prd package -->
+		<profile>
+			<id>prd</id>
+			<activation>
+				<property>
+					<name>env</name>
+					<value>prd</value>
+				</property>
+			</activation>
+			<build>
+				<filters>
+					<filter>src/main/assembly/prd.properties</filter>
+				</filters>
+			</build>
+			<properties>
+				<app.version.type></app.version.type>
+				<spi.version.type></spi.version.type>
+			</properties>
+		</profile>
+	</profiles>
+
+
+	<repositories>
+		<repository>
+			<id>nexus</id>
+			<name>Team Nexus Repository</name>
+			<url>http://10.10.40.58:8888/nexus/content/groups/public</url>
+		</repository>
+	</repositories>
+
+	<distributionManagement>
+		<repository>
+			<id>thirdparty</id>
+			<url>http://10.10.40.58:8888/nexus/content/repositories/thirdparty/</url>
+		</repository>
+	</distributionManagement>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>nexus</id>
+			<name>Team Nexus Repository</name>
+			<url>http://10.10.40.58:8888/nexus/content/groups/public</url>
+		</pluginRepository>
+	</pluginRepositories>
+
+</project>

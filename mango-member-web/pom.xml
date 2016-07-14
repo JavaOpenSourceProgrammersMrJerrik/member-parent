@@ -1,0 +1,235 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.mango.member</groupId>
+	<artifactId>mango-member-web</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>war</packaging>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<org.springframework.version>4.0.1.RELEASE</org.springframework.version>
+		<slf4j-version>1.7.21</slf4j-version>
+		<dev.version.type>-SNAPSHOT</dev.version.type>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>3.8.1</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>3.1.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<version>${org.springframework.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context-support</artifactId>
+			<version>${org.springframework.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+			<version>${org.springframework.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-webmvc</artifactId>
+			<version>${org.springframework.version}</version>
+		</dependency>
+
+		<!-- json转换包 -->
+		<dependency>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-core-asl</artifactId>
+			<version>1.9.12</version>
+		</dependency>
+		<dependency>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-mapper-asl</artifactId>
+			<version>1.9.12</version>
+		</dependency>
+		<dependency>
+			<groupId>net.sf.json-lib</groupId>
+			<artifactId>json-lib</artifactId>
+			<version>2.4</version>
+			<classifier>jdk15</classifier>
+		</dependency>
+		<!--以上 json转换包 -->
+
+		<!-- dubbo start -->
+
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>dubbo</artifactId>
+			<version>2.8.4</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.101tec</groupId>
+			<artifactId>zkclient</artifactId>
+			<version>0.4</version>
+		</dependency>
+		<!-- dubbo end -->
+
+		<!-- slf4j-api 和 jcl-over-slf4j 配置 -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${slf4j-version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+			<version>${slf4j-version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>${slf4j-version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>${slf4j-version}</version>
+		</dependency>
+		
+
+		<!-- spi -->
+		<dependency>
+			<groupId>com.mango.member</groupId>
+			<artifactId>mango-member-spi</artifactId>
+			<version>0.0.1${app.version.type}</version>
+		</dependency>
+	</dependencies>
+
+
+	<profiles>
+		<!-- 本地，默认激活 ，实现本地测试资源自动替换 -->
+		<profile>
+			<id>local</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+				<property>
+					<name>env</name>
+					<value>local</value>
+				</property>
+			</activation>
+			<build>
+				<filters>
+					<filter>src/main/assembly/local.properties</filter>
+				</filters>
+			</build>
+			<properties>
+				<app.version.type>${dev.version.type}</app.version.type>
+				<spi.version.type>${dev.version.type}</spi.version.type>
+			</properties>
+		</profile>
+		<!-- 开发环境打包：mvn -Denv=dev package -->
+		<profile>
+			<id>dev</id>
+			<activation>
+				<!-- <activeByDefault>true</activeByDefault> -->
+				<property>
+					<name>env</name>
+					<value>dev</value>
+				</property>
+			</activation>
+			<build>
+				<filters>
+					<filter>src/main/assembly/dev.properties</filter>
+				</filters>
+			</build>
+			<properties>
+				<app.version.type>${dev.version.type}</app.version.type>
+				<spi.version.type>${dev.version.type}</spi.version.type>
+			</properties>
+		</profile>
+
+		<!-- 测试环境打包：mvn -Denv=test package -->
+		<profile>
+			<id>test</id>
+			<activation>
+
+				<property>
+					<name>env</name>
+					<value>test</value>
+				</property>
+			</activation>
+			<build>
+				<filters>
+					<filter>src/main/assembly/test.properties</filter>
+				</filters>
+			</build>
+			<properties>
+				<app.version.type>-SNAPSHOT</app.version.type>
+				<spi.version.type>-SNAPSHOT</spi.version.type>
+			</properties>
+		</profile>
+
+		<!-- 回归环境打包：mvn -Denv=reg package -->
+		<profile>
+			<id>reg</id>
+			<activation>
+				<property>
+					<name>env</name>
+					<value>reg</value>
+				</property>
+			</activation>
+			<build>
+				<filters>
+					<filter>src/main/assembly/reg.properties</filter>
+				</filters>
+			</build>
+			<properties>
+				<app.version.type>-SNAPSHOT</app.version.type>
+				<spi.version.type>${dev.version.type}</spi.version.type>
+			</properties>
+		</profile>
+		<!-- 生产环境打包：mvn -Denv=prd package -->
+		<profile>
+			<id>prd</id>
+			<activation>
+				<property>
+					<name>env</name>
+					<value>prd</value>
+				</property>
+			</activation>
+			<build>
+				<filters>
+					<filter>src/main/assembly/prd.properties</filter>
+				</filters>
+			</build>
+			<properties>
+				<app.version.type></app.version.type>
+				<spi.version.type></spi.version.type>
+			</properties>
+		</profile>
+	</profiles>
+
+	<build>
+		<finalName>mango-member-web</finalName>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+	</build>
+</project>

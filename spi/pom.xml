@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://maven.apache.org/POM/4.0.0"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.mango.member</groupId>
+	<artifactId>mango-member-spi</artifactId>
+	<packaging>jar</packaging>
+	<version>0.0.1${app.version.type}</version>
+	
+	<distributionManagement>
+		<repository>
+			<id>releases</id>
+			<name>releases</name>
+			<url>http://10.10.40.58:8888/nexus/content/repositories/releases</url>
+		</repository>
+		<snapshotRepository>
+			<id>snapshots</id>
+			<name>snapshots</name>
+			<url>http://10.10.40.58:8888/nexus/content/repositories/snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
+
+	<profiles>
+		<!-- 本地，默认激活 ，实现本地测试资源自动替换 -->
+		<profile>
+			<id>local</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+				<property>
+					<name>env</name>
+					<value>local</value>
+				</property>
+			</activation>
+			<properties>
+				<app.version.type>-SNAPSHOT</app.version.type>
+			</properties>
+		</profile>
+		<!-- 开发环境打包：mvn -Denv=dev package -->
+		<profile>
+			<id>dev</id>
+			<activation>
+				<property>
+					<name>env</name>
+					<value>dev</value>
+				</property>
+			</activation>
+			<properties>
+				<app.version.type>-SNAPSHOT</app.version.type>
+			</properties>
+		</profile>
+		<!-- 测试环境打包：mvn -Denv=test package -->
+		<profile>
+			<id>test</id>
+			<activation>
+				<property>
+					<name>env</name>
+					<value>test</value>
+				</property>
+			</activation>
+			<properties>
+				<app.version.type>-SNAPSHOT</app.version.type>
+			</properties>
+		</profile>
+		<!-- 回归环境打包：mvn -Denv=reg package -->
+		<profile>
+			<id>reg</id>
+			<activation>
+				<property>
+					<name>env</name>
+					<value>reg</value>
+				</property>
+			</activation>
+			<properties>
+				<app.version.type>-SNAPSHOT</app.version.type>
+			</properties>
+		</profile>
+		<!-- 生产环境打包：mvn -Denv=prd package -->
+		<profile>
+			<id>prd</id>
+			<activation>
+				<property>
+					<name>env</name>
+					<value>prd</value>
+				</property>
+			</activation>
+			<properties>
+				<app.version.type></app.version.type>
+			</properties>
+		</profile>
+	</profiles>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+					<encoding>utf-8</encoding>
+				</configuration>
+			</plugin>
+			<!-- 提取项目配置文件、避免被打入 jar 包中（打入 jar 包中不便于部署和运维时修改） -->
+			<plugin>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>**/*.properties</exclude>
+						<exclude>**/*.xml</exclude>
+					</excludes>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.1</version>
+				<configuration>
+					<attach>true</attach>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>compile</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+		</plugins>
+	</build>
+
+</project>
